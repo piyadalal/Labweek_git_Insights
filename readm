@@ -1,0 +1,64 @@
+Git Insight – Full Project Flow
+OVERALL ARCHITECTURE
+The system has three main layers:
+1. Data Extraction Layer
+2. Local Intelligence Layer
+3. LLM Reasoning Layer
+PHASE 1 – DATA EXTRACTION (Runs Once)
+File: git_full_intelligence_extractor.py
+This script:
+- Runs git commands (log, branch, merges, diff, rev-list)
+- Extracts commit, branch, merge, and divergence data
+- Builds a structured JSON file: git_full_metadata.json
+No LLM is used in this phase.
+PHASE 2 – LOCAL INTELLIGENCE (Runs Per Question)
+When a user enters a question:
+1. load_full_data() reads git_full_metadata.json.
+2. filter_commits() narrows commits based on:
+- Contributor name
+- Time phrases (last week, recent, etc.)
+- Keywords
+- Relevance scoring
+3. build_structured_context() creates a repository summary:
+- Total commits
+- Branch metrics
+- Merge metrics
+- Divergence data
+4. format_commits_for_llm() converts relevant commits into readable blocks.
+All of this happens locally. No data is sent to the model yet.
+PHASE 3 – LLM REASONING
+Only after filtering and summarizing, the system sends:
+- Repository summary
+- Relevant commits only
+- User question
+The model never receives:
+- Entire git history
+- Raw JSON
+- Source code
+FLOW SUMMARY
+Git Repository
+↓
+Extractor Script
+↓
+git_full_metadata.json
+↓
+User Question
+↓
+load_full_data()
+↓
+filter_commits()
+↓
+build_structured_context()
+↓
+format_commits_for_llm()
+↓
+LLM Call
+↓
+Answer Displayed
+DESIGN PRINCIPLE
+Search locally. Reason globally.
+The system uses deterministic filtering and structured summaries before calling the model. This ensur
+- Efficiency
+- Token control
+- Privacy safety
+- Reduced hallucination
